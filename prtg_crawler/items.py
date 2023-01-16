@@ -1,12 +1,12 @@
-# Define here the models for your scraped items
-#
-# See documentation in:
-# https://docs.scrapy.org/en/latest/topics/items.html
-
 import scrapy
 
 
 class PrtgCrawlerItem(scrapy.Item):
-    # define the fields for your item here like:
-    # name = scrapy.Field()
-    pass
+    name = scrapy.Field()
+    sensor_id = scrapy.Field()
+    url = scrapy.Field()
+    tags = scrapy.Field()
+    interval = scrapy.Field()
+    status = scrapy.Field()
+    active = scrapy.Field()
+
