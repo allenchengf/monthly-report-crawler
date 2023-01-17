@@ -1,5 +1,8 @@
+from datetime import datetime
 import json
 import re
+import time
+import calendar
 import scrapy
 
 
@@ -67,6 +70,7 @@ class SensorSpider(scrapy.Spider):
             incomingRefer = 'Incoming_Traffic (speed)'
             outgoingRefer = 'Outgoing_Traffic (speed)'
 
+            historic_item = {}
             for idx, name in enumerate(historic):
                 if incomingRefer or outgoingRefer in name:
 
@@ -78,13 +82,15 @@ class SensorSpider(scrapy.Spider):
                                 historic[name])) != '' else int(float(historic[name]))
                         incoming_name_list = name.split('_')
                         key = str(num) + '_' + str(incoming_name_list[0].replace(' ', '-')) + '_' + str(sensor_id)
-                        historic_item = {key: {'sensor_id': sensor_id,
-                                               'datetime': historic['datetime'],
-                                               'prefix': incoming_name_list[0],
-                                               'incoming': incoming,
-                                               'raw_incoming': incoming
-                                               }
-                                         }
+
+                        if key not in historic_item.keys():
+                            historic_item = {key: {}}
+
+                        historic_item[key]['sensor_id'] = sensor_id
+                        historic_item[key]['datetime'] = self.get_date(historic['datetime'])
+                        historic_item[key]['prefix'] = incoming_name_list[0]
+                        historic_item[key]['incoming'] = incoming
+                        historic_item[key]['raw_incoming'] = incoming
 
                     if name.find(outgoingRefer) != -1:
                         if isinstance(historic[name], str):
@@ -93,17 +99,31 @@ class SensorSpider(scrapy.Spider):
                             outgoing = int(float(historic[name])) * 8 if int(float(historic[name])) > 0 & int(float(
                                 historic[name])) != '' else int(float(historic[name]))
                         outgoing_name_list = name.split('_')
-                        key = str(num) + '_' + str(outgoing_name_list[0]) + '_' + str(sensor_id) + '_outgoing'
-                        historic_item = {key: {'sensor_id': sensor_id,
-                                               'datetime': historic['datetime'],
-                                               'prefix': outgoing_name_list[0],
-                                               'outgoing': outgoing,
-                                               'raw_outgoing': outgoing
-                                               }
-                                         }
-                        # historic_item[key]['outgoing'] = outgoing
-                        # historic_item[key]['raw_outgoing'] = outgoing
+                        key = str(num) + '_' + str(outgoing_name_list[0].replace(' ', '-')) + '_' + str(sensor_id)
+
+                        if key not in historic_item.keys():
+                            historic_item = {key: {}}
+
+                        historic_item[key]['sensor_id'] = sensor_id
+                        historic_item[key]['datetime'] = self.get_date(historic['datetime'])
+                        historic_item[key]['prefix'] = outgoing_name_list[0]
+                        historic_item[key]['outgoing'] = outgoing
+                        historic_item[key]['raw_outgoing'] = outgoing
 
                         print(historic_item)
                         print("------------------------------")
             num += 1
+
+    def get_date(self, row_datetime):
+        datetime_str_temp = str(row_datetime).split(' ')
+        datetime_str = str(datetime_str_temp[1] + datetime_str_temp[2]).split(':')
+
+        hours_mapping_dict = {
+            '下午01': '13', '下午02': '14', '下午03': '15', '下午04': '16', '下午05': '17', '下午06': '18', '下午07': '19', '下午08': '20',
+            '下午09': '21', '下午10': '22', '下午11': '23', '下午12': '24', '上午01': '01', '上午02': '02', '上午03': '03', '上午04': '04',
+            '上午05': '05', '上午06': '06', '上午07': '07', '上午08': '08', '上午09': '09', '上午10': '10', '上午11': '11', '上午12': '00'
+        }
+
+        datetime_str = str(datetime_str_temp[0]) + ' ' + str(hours_mapping_dict[str(datetime_str[0])]) + ':' + str(datetime_str[1]) + ':' + str(datetime_str[2])
+        datetime_str = datetime_str.replace('/', '-')
+        return datetime_str
