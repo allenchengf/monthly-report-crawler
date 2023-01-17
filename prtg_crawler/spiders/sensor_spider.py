@@ -50,7 +50,7 @@ class SensorSpider(scrapy.Spider):
             # print(channel_item)
             # print("----------------")
             historic_url = 'http://172.31.251.9:8080/api/historicdata.json?id=' + sensor_id + '&avg=0&sdate=2023-01-15-00-00-00&edate' \
-                                                                                              '=2023-01-15-00-05-00&usecaption=1&username=ict.monitor&passhash=3168990700'
+                                                                                              '=2023-01-15-23-59-00&usecaption=1&username=ict.monitor&passhash=3168990700'
 
             yield scrapy.Request(historic_url, meta={'item': item, 'channel_item': channel_item},
                                  callback=self.historic_parse)
@@ -93,10 +93,16 @@ class SensorSpider(scrapy.Spider):
                             outgoing = int(float(historic[name])) * 8 if int(float(historic[name])) > 0 & int(float(
                                 historic[name])) != '' else int(float(historic[name]))
                         outgoing_name_list = name.split('_')
-                        key = str(num) + '_' + str(outgoing_name_list[0]) + '_' + str(sensor_id)
-
-                        historic_item[key]['outgoing'] = outgoing
-                        historic_item[key]['raw_outgoing'] = outgoing
+                        key = str(num) + '_' + str(outgoing_name_list[0]) + '_' + str(sensor_id) + '_outgoing'
+                        historic_item = {key: {'sensor_id': sensor_id,
+                                               'datetime': historic['datetime'],
+                                               'prefix': outgoing_name_list[0],
+                                               'outgoing': outgoing,
+                                               'raw_outgoing': outgoing
+                                               }
+                                         }
+                        # historic_item[key]['outgoing'] = outgoing
+                        # historic_item[key]['raw_outgoing'] = outgoing
 
                         print(historic_item)
                         print("------------------------------")
