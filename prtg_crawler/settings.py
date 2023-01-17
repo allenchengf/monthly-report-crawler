@@ -99,4 +99,4 @@ LOG_FILE = "sensor.log"
 LOG_LEVEL = "INFO"
 
 # Download timeout setting
-DOWNLOAD_TIMEOUT = 10
+DOWNLOAD_TIMEOUT = 30
