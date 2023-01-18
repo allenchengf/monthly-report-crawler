@@ -23,7 +23,8 @@ class SensorSpider(scrapy.Spider):
                 # print(sensor)
                 item = {
                     'ids': ids,
-                    "id": re.findall("(?:<id.*?>)(.*?)(?:<\\/id>)", sensor),
+                    'name': re.findall("(?:<name.*?>)(.*?)(?:<\\/name>)", sensor),
+                    "sensor_id": re.findall("(?:<id.*?>)(.*?)(?:<\\/id>)", sensor),
                     "url": re.findall("(?:<url.*?>)(.*?)(?:<\\/url>)", sensor),
                     "tags": re.findall("(?:<tags.*?>)(.*?)(?:<\\/tags>)", sensor),
                     "interval": re.findall("(?:<interval.*?>)(.*?)(?:<\\/interval>)", sensor),
@@ -31,18 +32,18 @@ class SensorSpider(scrapy.Spider):
                     "active": re.findall("(?:<active.*?>)(.*?)(?:<\\/active>)", sensor),
                 }
                 item['channel_url'] = 'http://172.31.251.9:8080/api/table.json?content=channels&output=json&columns=name,' \
-                                      'lastvalue_&id=' + str(item["id"]).replace("['", "").replace("']",
+                                      'lastvalue_&id=' + str(item["sensor_id"]).replace("['", "").replace("']",
                                                                                                    "") + '&username=ict.monitor&passhash=3168990700'
 
-                # print(item)
-                yield scrapy.Request(item['channel_url'], meta={'item': item}, callback=self.channel_parse)
-                # yield item
+                print(item)
+                # yield scrapy.Request(item['channel_url'], meta={'item': item}, callback=self.channel_parse)
+                yield item
 
     def channel_parse(self, response):
         item = response.meta['item']
         channels = json.loads(response.text)
         for channel in channels['channels']:
-            sensor_id = str(item['id']).replace("['", "").replace("']", "")
+            sensor_id = str(item['sensor_id']).replace("['", "").replace("']", "")
             name = channel['name']
             del channel['name']
             channel_item = {
@@ -65,7 +66,7 @@ class SensorSpider(scrapy.Spider):
 
         num = 0
         for historic in historics['histdata']:
-            sensor_id = str(item['id']).replace("['", "").replace("']", "")
+            sensor_id = str(item['sensor_id']).replace("['", "").replace("']", "")
 
             incomingRefer = 'Incoming_Traffic (speed)'
             outgoingRefer = 'Outgoing_Traffic (speed)'
