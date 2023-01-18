@@ -10,7 +10,7 @@ class HistoricCrawlerPipeline:
         try:
             historic_item = historic.Historic(
                 sensor_id=item['sensor_id'],
-                channel_name=item['channel_name'],
+                # channel_name=item['channel_name'],
                 prefix=item['prefix'],
                 incoming=item['incoming'],
                 outgoing=item['outgoing'],

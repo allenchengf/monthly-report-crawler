@@ -62,13 +62,12 @@ class SensorSpider(scrapy.Spider):
 
     def historic_parse(self, response):
         item = response.meta['item']
-        channel_item = response.meta['channel_item']
         historics = json.loads(response.text)
 
         num = 0
         for historic in historics['histdata']:
+            # print(historic)
             sensor_id = str(item['sensor_id']).replace("['", "").replace("']", "")
-            channel_name = str(channel_item['name']).replace("['", "").replace("']", "")
             incomingRefer = 'Incoming_Traffic (speed)'
             outgoingRefer = 'Outgoing_Traffic (speed)'
 
@@ -83,13 +82,15 @@ class SensorSpider(scrapy.Spider):
                             incoming = int(float(historic[name])) * 8 if int(float(historic[name])) > 0 & int(float(
                                 historic[name])) != '' else int(float(historic[name]))
                         incoming_name_list = name.split('_')
+                        # channel_name_temp = name.split(' ')
+                        # channel_name = str(channel_name_temp[0])
                         key = str(num) + '_' + str(incoming_name_list[0].replace(' ', '-')) + '_' + str(sensor_id)
 
                         if key not in historic_item.keys():
                             historic_item = {key: {}}
 
                         historic_item[key]['sensor_id'] = sensor_id
-                        historic_item[key]['channel_name'] = channel_name
+                        # historic_item[key]['channel_name'] = channel_name
                         historic_item[key]['datetime'] = self.get_date(historic['datetime'])
                         historic_item[key]['prefix'] = incoming_name_list[0]
                         historic_item[key]['incoming'] = incoming
@@ -102,21 +103,26 @@ class SensorSpider(scrapy.Spider):
                             outgoing = int(float(historic[name])) * 8 if int(float(historic[name])) > 0 & int(float(
                                 historic[name])) != '' else int(float(historic[name]))
                         outgoing_name_list = name.split('_')
+                        # channel_name_temp = name.split(' ')
+                        # channel_name = str(channel_name_temp[0])
                         key = str(num) + '_' + str(outgoing_name_list[0].replace(' ', '-')) + '_' + str(sensor_id)
 
                         if key not in historic_item.keys():
                             historic_item = {key: {}}
 
                         historic_item[key]['sensor_id'] = sensor_id
-                        historic_item[key]['channel_name'] = channel_name
+                        # historic_item[key]['channel_name'] = channel_name
                         historic_item[key]['datetime'] = self.get_date(historic['datetime'])
                         historic_item[key]['prefix'] = outgoing_name_list[0]
                         historic_item[key]['outgoing'] = outgoing
                         historic_item[key]['raw_outgoing'] = outgoing
 
-                        # print(historic_item)
-                        # print("------------------------------")
-                        yield historic_item[key]
+                        cidr_regex = r'^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$'
+                        if re.match(cidr_regex, str(historic_item[key]['prefix'])):
+                            # print(historic_item)
+                            # print("------------------------------")
+                            yield historic_item[key]
+
             num += 1
 
     def get_date(self, row_datetime):

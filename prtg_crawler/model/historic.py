@@ -7,7 +7,7 @@ class Historic(Base):
     __tablename__ = 'historic'
     id = Column(Integer, primary_key=True, autoincrement=True)
     sensor_id = Column(Integer(), nullable=False)
-    channel_name = Column(String(255), nullable=True)
+    # channel_name = Column(String(255), nullable=True)
     prefix = Column(String(255), nullable=False)
     reserve_prefix = Column(String(255), nullable=True)
     incoming = Column(String(50), nullable=True)
