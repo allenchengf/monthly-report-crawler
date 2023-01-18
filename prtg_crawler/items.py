@@ -16,3 +16,13 @@ class ChannelItem(scrapy.Item):
     name = scrapy.Field()
     lastvalue = scrapy.Field()
 
+
+class HistoricItem(scrapy.Item):
+    sensor_id = scrapy.Field()
+    channel_name = scrapy.Field()
+    datetime = scrapy.Field()
+    prefix = scrapy.Field()
+    incoming = scrapy.Field()
+    raw_incoming = scrapy.Field()
+    outgoing = scrapy.Field()
+    raw_outgoing = scrapy.Field()

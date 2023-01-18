@@ -7,7 +7,7 @@ class Historic(Base):
     __tablename__ = 'historic'
     id = Column(Integer, primary_key=True, autoincrement=True)
     sensor_id = Column(Integer(), nullable=False)
-    channel_name = Column(String(255), nullable=False)
+    channel_name = Column(String(255), nullable=True)
     prefix = Column(String(255), nullable=False)
     reserve_prefix = Column(String(255), nullable=True)
     incoming = Column(String(50), nullable=True)
@@ -17,14 +17,3 @@ class Historic(Base):
     datetime = Column(TIMESTAMP, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
-
-
-  # `sensor_id` int(11) NOT NULL,
-  # `channel_name` varchar(255) DEFAULT NULL,
-  # `prefix` varchar(255) NOT NULL,
-  # `reserve_prefix` varchar(255) DEFAULT NULL,
-  # `incoming` varchar(50) DEFAULT NULL,
-  # `outgoing` varchar(50) DEFAULT NULL,
-  # `datetime` timestamp NULL DEFAULT NULL,
-  # `created_at` timestamp NULL DEFAULT NULL,
-  # `updated_at` timestamp NULL DEFAULT NULL,

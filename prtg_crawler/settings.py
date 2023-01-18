@@ -97,8 +97,8 @@ HTTPCACHE_ENABLED = True
 REQUEST_FINGERPRINTER_IMPLEMENTATION = '2.7'
 TWISTED_REACTOR = 'twisted.internet.asyncioreactor.AsyncioSelectorReactor'
 
-LOG_FILE = "sensor.log"
-LOG_LEVEL = "INFO"
+# LOG_FILE = "sensor.log"
+# LOG_LEVEL = "INFO"
 
 # Download timeout setting
 DOWNLOAD_TIMEOUT = 30

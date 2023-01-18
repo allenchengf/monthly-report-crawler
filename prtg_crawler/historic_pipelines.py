@@ -12,7 +12,6 @@ class HistoricCrawlerPipeline:
                 sensor_id=item['sensor_id'],
                 channel_name=item['channel_name'],
                 prefix=item['prefix'],
-                reserve_prefix=item['reserve_prefix'],
                 incoming=item['incoming'],
                 outgoing=item['outgoing'],
                 raw_incoming=item['raw_incoming'],
@@ -24,6 +23,6 @@ class HistoricCrawlerPipeline:
             session.commit()
 
         except Exception as e:
-            logging.info(e)
+            logging.error(e)
 
         return item

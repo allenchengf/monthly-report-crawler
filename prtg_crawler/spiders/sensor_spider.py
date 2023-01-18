@@ -56,8 +56,8 @@ class SensorSpider(scrapy.Spider):
             historic_url = 'http://172.31.251.9:8080/api/historicdata.json?id=' + sensor_id + '&avg=0&sdate=2023-01-15-00-00-00&edate' \
                                                                                               '=2023-01-15-23-59-00&usecaption=1&username=ict.monitor&passhash=3168990700'
 
-            # yield scrapy.Request(historic_url, meta={'item': item, 'channel_item': channel_item},
-            #                      callback=self.historic_parse)
+            yield scrapy.Request(historic_url, meta={'item': item, 'channel_item': channel_item},
+                                 callback=self.historic_parse)
             yield channel_item
 
     def historic_parse(self, response):
@@ -116,7 +116,7 @@ class SensorSpider(scrapy.Spider):
 
                         # print(historic_item)
                         # print("------------------------------")
-                        yield historic_item
+                        yield historic_item[key]
             num += 1
 
     def get_date(self, row_datetime):
