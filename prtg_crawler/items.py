@@ -10,3 +10,9 @@ class SensorItem(scrapy.Item):
     status = scrapy.Field()
     active = scrapy.Field()
 
+
+class ChannelItem(scrapy.Item):
+    sensor_id = scrapy.Field()
+    name = scrapy.Field()
+    lastvalue = scrapy.Field()
+

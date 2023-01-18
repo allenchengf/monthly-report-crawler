@@ -21,7 +21,7 @@ class SensorSpider(scrapy.Spider):
         for ids, sensor in enumerate(sensors):
             if sflow_sensortype_refor in sensor or ipfix_sensortype_refor in sensor or sensor_factory_sensortype_refor in sensor:
                 # print(sensor)
-                item = {
+                Sensor_item = {
                     'ids': ids,
                     'name': re.findall("(?:<name.*?>)(.*?)(?:<\\/name>)", sensor),
                     "sensor_id": re.findall("(?:<id.*?>)(.*?)(?:<\\/id>)", sensor),
@@ -31,13 +31,13 @@ class SensorSpider(scrapy.Spider):
                     "status": re.findall("(?:<status.*?>)(.*?)(?:<\\/status>)", sensor),
                     "active": re.findall("(?:<active.*?>)(.*?)(?:<\\/active>)", sensor),
                 }
-                item['channel_url'] = 'http://172.31.251.9:8080/api/table.json?content=channels&output=json&columns=name,' \
-                                      'lastvalue_&id=' + str(item["sensor_id"]).replace("['", "").replace("']",
+                Sensor_item['channel_url'] = 'http://172.31.251.9:8080/api/table.json?content=channels&output=json&columns=name,' \
+                                      'lastvalue_&id=' + str(Sensor_item["sensor_id"]).replace("['", "").replace("']",
                                                                                                    "") + '&username=ict.monitor&passhash=3168990700'
 
-                print(item)
-                # yield scrapy.Request(item['channel_url'], meta={'item': item}, callback=self.channel_parse)
-                yield item
+                # print(SensorItem)
+                yield scrapy.Request(Sensor_item['channel_url'], meta={'item': Sensor_item}, callback=self.channel_parse)
+                yield Sensor_item
 
     def channel_parse(self, response):
         item = response.meta['item']
@@ -49,15 +49,16 @@ class SensorSpider(scrapy.Spider):
             channel_item = {
                 "sensor_id": sensor_id,
                 "name": name,
-                "value": json.dumps(channel)
+                "lastvalue": json.dumps(channel)
             }
             # print(channel_item)
             # print("----------------")
             historic_url = 'http://172.31.251.9:8080/api/historicdata.json?id=' + sensor_id + '&avg=0&sdate=2023-01-15-00-00-00&edate' \
                                                                                               '=2023-01-15-23-59-00&usecaption=1&username=ict.monitor&passhash=3168990700'
 
-            yield scrapy.Request(historic_url, meta={'item': item, 'channel_item': channel_item},
-                                 callback=self.historic_parse)
+            # yield scrapy.Request(historic_url, meta={'item': item, 'channel_item': channel_item},
+            #                      callback=self.historic_parse)
+            yield channel_item
 
     def historic_parse(self, response):
         item = response.meta['item']
@@ -67,7 +68,7 @@ class SensorSpider(scrapy.Spider):
         num = 0
         for historic in historics['histdata']:
             sensor_id = str(item['sensor_id']).replace("['", "").replace("']", "")
-
+            channel_name = str(channel_item['name']).replace("['", "").replace("']", "")
             incomingRefer = 'Incoming_Traffic (speed)'
             outgoingRefer = 'Outgoing_Traffic (speed)'
 
@@ -88,6 +89,7 @@ class SensorSpider(scrapy.Spider):
                             historic_item = {key: {}}
 
                         historic_item[key]['sensor_id'] = sensor_id
+                        historic_item[key]['channel_name'] = channel_name
                         historic_item[key]['datetime'] = self.get_date(historic['datetime'])
                         historic_item[key]['prefix'] = incoming_name_list[0]
                         historic_item[key]['incoming'] = incoming
@@ -106,13 +108,15 @@ class SensorSpider(scrapy.Spider):
                             historic_item = {key: {}}
 
                         historic_item[key]['sensor_id'] = sensor_id
+                        historic_item[key]['channel_name'] = channel_name
                         historic_item[key]['datetime'] = self.get_date(historic['datetime'])
                         historic_item[key]['prefix'] = outgoing_name_list[0]
                         historic_item[key]['outgoing'] = outgoing
                         historic_item[key]['raw_outgoing'] = outgoing
 
-                        print(historic_item)
-                        print("------------------------------")
+                        # print(historic_item)
+                        # print("------------------------------")
+                        yield historic_item
             num += 1
 
     def get_date(self, row_datetime):
