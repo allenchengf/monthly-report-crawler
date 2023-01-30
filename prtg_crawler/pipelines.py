@@ -2,7 +2,7 @@ from .model import sensor
 import logging
 from twisted.enterprise import adbapi
 import pymysql
-
+from prtg_crawler.items import SensorItem
 
 class PrtgCrawlerPipeline(object):
     def __init__(self, dbpool):
@@ -22,15 +22,16 @@ class PrtgCrawlerPipeline(object):
         return cls(dbpool)
 
     def process_item(self, item, spider):
-        # 入庫
-        query = self.dbpool.runInteraction(
-            self.insert_db,
-            item
-        )
-        query.addErrback(
-            self.insert_err,
-            item
-        )
+        if isinstance(item, SensorItem):
+            # 入庫
+            query = self.dbpool.runInteraction(
+                self.insert_db,
+                item
+            )
+            query.addErrback(
+                self.insert_err,
+                item
+            )
         return item
 
     def insert_err(self, failure, item):
@@ -60,3 +61,6 @@ class PrtgCrawlerPipeline(object):
         truncate_sql = 'truncate table sensors'
         self.dbpool.runOperation(truncate_sql)
         print('truncate sensors table.')
+
+    def close_spider(self, spider):
+        self.dbpool.close()
