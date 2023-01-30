@@ -27,7 +27,6 @@ class SensorSpider(scrapy.Spider):
                     "sensor_id": re.findall("(?:<id.*?>)(.*?)(?:<\\/id>)", sensor),
                     "url": re.findall("(?:<url.*?>)(.*?)(?:<\\/url>)", sensor),
                     "tags": re.findall("(?:<tags.*?>)(.*?)(?:<\\/tags>)", sensor),
-                    "interval": re.findall("(?:<interval.*?>)(.*?)(?:<\\/interval>)", sensor),
                     "status": re.findall("(?:<status.*?>)(.*?)(?:<\\/status>)", sensor),
                     "active": re.findall("(?:<active.*?>)(.*?)(?:<\\/active>)", sensor),
                 }
@@ -35,8 +34,8 @@ class SensorSpider(scrapy.Spider):
                                       'lastvalue_&id=' + str(Sensor_item["sensor_id"]).replace("['", "").replace("']",
                                                                                                    "") + '&username=ict.monitor&passhash=3168990700'
 
-                # print(SensorItem)
-                yield scrapy.Request(Sensor_item['channel_url'], meta={'item': Sensor_item}, callback=self.channel_parse)
+                # print(Sensor_item)
+                # yield scrapy.Request(Sensor_item['channel_url'], meta={'item': Sensor_item}, callback=self.channel_parse)
                 yield Sensor_item
 
     def channel_parse(self, response):

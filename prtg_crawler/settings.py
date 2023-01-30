@@ -102,3 +102,11 @@ TWISTED_REACTOR = 'twisted.internet.asyncioreactor.AsyncioSelectorReactor'
 
 # Download timeout setting
 DOWNLOAD_TIMEOUT = 30
+
+# MySQL Setting
+MYSQL_HOST = 'localhost'
+MYSQL_USER = 'root'
+MYSQL_PWD = 'root'
+MYSQL_DB = 'monthly_report'
+MYSQL_PORT = 3306
+MYSQL_CHARSET = 'utf8mb4'

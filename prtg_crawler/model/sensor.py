@@ -10,7 +10,6 @@ class Sensor(Base):
     sensor_id = Column(Integer(), nullable=False)
     url = Column(String(255), nullable=True)
     tags = Column(String(255), nullable=True)
-    interval = Column(String(50), nullable=True)
     status = Column(String(50), nullable=True)
     active = Column(String(50), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())

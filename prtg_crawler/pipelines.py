@@ -1,36 +1,62 @@
-from .model import Base, engine, loadSession
 from .model import sensor
 import logging
+from twisted.enterprise import adbapi
+import pymysql
 
 
-class PrtgCrawlerPipeline:
-    Base.metadata.create_all(engine)
+class PrtgCrawlerPipeline(object):
+    def __init__(self, dbpool):
+        self.dbpool = dbpool
 
-    def __init__(self):
-        session = loadSession()
-        try:
-            session.execute('TRUNCATE TABLE sensors')
-            session.commit()
-        except Exception as e:
-            session.rollback()
-            logging.error(e)
+    @classmethod
+    def from_crawler(cls, prtg_crawler):
+        dbparams = {
+            'host': prtg_crawler.settings['MYSQL_HOST'],
+            'user': prtg_crawler.settings['MYSQL_USER'],
+            'passwd': prtg_crawler.settings['MYSQL_PWD'],
+            'db': prtg_crawler.settings['MYSQL_DB'],
+            'port': prtg_crawler.settings['MYSQL_PORT'],
+            'charset': prtg_crawler.settings['MYSQL_CHARSET']
+        }
+        dbpool = adbapi.ConnectionPool('pymysql', **dbparams)
+        return cls(dbpool)
 
     def process_item(self, item, spider):
-        try:
-            sensor_item = sensor.Sensor(
-                name=item['name'],
-                sensor_id=item['sensor_id'],
-                url=item['url'],
-                tags=item['tags'],
-                interval=item['interval'],
-                status=item['status'],
-                active=item['active']
-            )
-            session = loadSession()
-            session.add(sensor_item)
-            session.commit()
-
-        except Exception as e:
-            logging.info(e)
-
+        # 入庫
+        query = self.dbpool.runInteraction(
+            self.insert_db,
+            item
+        )
+        query.addErrback(
+            self.insert_err,
+            item
+        )
         return item
+
+    def insert_err(self, failure, item):
+        print(failure, 'fail')  # , item)
+
+    def insert_db(self, cursor, item):
+        insert_sql = """
+                        insert into sensors( 
+                        name, 
+                        sensor_id, 
+                        url, 
+                        tags, 
+                        status,
+                        active)
+                        values (%s, %s, %s, %s, %s, %s)
+                        """
+        params = (item['name'],
+                  item['sensor_id'],
+                  item['url'],
+                  item['tags'],
+                  item['status'],
+                  item['active'])
+        cursor.execute(insert_sql, params)
+
+    def open_spider(self, spider):
+        logging.info('start crawler.')
+        truncate_sql = 'truncate table sensors'
+        self.dbpool.runOperation(truncate_sql)
+        print('truncate sensors table.')
