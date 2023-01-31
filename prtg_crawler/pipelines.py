@@ -22,7 +22,7 @@ class PrtgCrawlerPipeline(object):
         return cls(dbpool)
 
     def process_item(self, item, spider):
-        if isinstance(item, SensorItem):
+        if "url" in item:
             # 入庫
             query = self.dbpool.runInteraction(
                 self.insert_db,

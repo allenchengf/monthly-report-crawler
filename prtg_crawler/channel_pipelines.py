@@ -22,7 +22,7 @@ class ChannelCrawlerPipeline(object):
         return cls(dbpool)
 
     def process_item(self, item, spider):
-        if isinstance(item, ChannelItem):
+        if "lastvalue" in item:
             # 入庫
             query = self.dbpool.runInteraction(
                 self.insert_db,
