@@ -130,7 +130,7 @@ class SensorSpider(scrapy.Spider):
                         if re.match(cidr_regex, str(historic_item_list[historic_item]['prefix'])):
                             print(historic_item_list[historic_item])
                             print("------------------------------")
-                            yield historic_item
+                            yield historic_item_list[historic_item]
 
                     print(historic_item_list)
                     print("------------------------------")
