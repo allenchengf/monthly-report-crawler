@@ -55,8 +55,7 @@ class SensorSpider(scrapy.Spider):
             historic_url = 'http://172.31.251.9:8080/api/historicdata.json?id=' + sensor_id + '&avg=0&sdate=2023-01-15-00-00-00&edate' \
                                                                                               '=2023-01-15-23-59-00&usecaption=1&username=ict.monitor&passhash=3168990700'
 
-            # yield scrapy.Request(historic_url, meta={'item': item, 'channel_item': channel_item},
-            #                      callback=self.historic_parse)
+            yield scrapy.Request(historic_url, meta={'item': item, 'channel_item': channel_item}, callback=self.historic_parse)
             yield channel_item
 
     def historic_parse(self, response):
@@ -65,14 +64,13 @@ class SensorSpider(scrapy.Spider):
 
         num = 0
         for historic in historics['histdata']:
-            # print(historic)
+            print('Count:', len(historic))
             sensor_id = str(item['sensor_id']).replace("['", "").replace("']", "")
             incomingRefer = 'Incoming_Traffic (speed)'
             outgoingRefer = 'Outgoing_Traffic (speed)'
-
-            historic_item = {}
+            historic_item_list = {}
             for idx, name in enumerate(historic):
-                if incomingRefer or outgoingRefer in name:
+                if incomingRefer in name or outgoingRefer in name and '(volume)' not in name:
 
                     if name.find(incomingRefer) != -1:
                         if isinstance(historic[name], str):
@@ -85,15 +83,19 @@ class SensorSpider(scrapy.Spider):
                         # channel_name = str(channel_name_temp[0])
                         key = str(num) + '_' + str(incoming_name_list[0].replace(' ', '-')) + '_' + str(sensor_id)
 
-                        if key not in historic_item.keys():
-                            historic_item = {key: {}}
+                        if key in historic_item_list:
+                            historic_item_list[key]['incoming'] = incoming
+                            historic_item_list[key]['raw_incoming'] = incoming
+                        else:
+                            # historic_item_list = {key: {}}
+                            historic_item_list[key] = {}
+                            historic_item_list[key]['sensor_id'] = sensor_id
+                            # historic_item_list[key]['channel_name'] = channel_name
+                            historic_item_list[key]['datetime'] = self.get_date(historic['datetime'])
+                            historic_item_list[key]['prefix'] = incoming_name_list[0]
+                            historic_item_list[key]['incoming'] = incoming
+                            historic_item_list[key]['raw_incoming'] = incoming
 
-                        historic_item[key]['sensor_id'] = sensor_id
-                        # historic_item[key]['channel_name'] = channel_name
-                        historic_item[key]['datetime'] = self.get_date(historic['datetime'])
-                        historic_item[key]['prefix'] = incoming_name_list[0]
-                        historic_item[key]['incoming'] = incoming
-                        historic_item[key]['raw_incoming'] = incoming
 
                     if name.find(outgoingRefer) != -1:
                         if isinstance(historic[name], str):
@@ -106,21 +108,32 @@ class SensorSpider(scrapy.Spider):
                         # channel_name = str(channel_name_temp[0])
                         key = str(num) + '_' + str(outgoing_name_list[0].replace(' ', '-')) + '_' + str(sensor_id)
 
-                        if key not in historic_item.keys():
-                            historic_item = {key: {}}
-
-                        historic_item[key]['sensor_id'] = sensor_id
-                        # historic_item[key]['channel_name'] = channel_name
-                        historic_item[key]['datetime'] = self.get_date(historic['datetime'])
-                        historic_item[key]['prefix'] = outgoing_name_list[0]
-                        historic_item[key]['outgoing'] = outgoing
-                        historic_item[key]['raw_outgoing'] = outgoing
-
+                        if key in historic_item_list:
+                            historic_item_list[key]['outgoing'] = outgoing
+                            historic_item_list[key]['raw_outgoing'] = outgoing
+                        else:
+                            print('not')
+                            print('key:'+key)
+                            print('name:' + name)
+                            print('historic_item:', historic_item_list.keys())
+                            # historic_item_list = {key: {}}
+                            historic_item_list[key] = {}
+                            historic_item_list[key]['sensor_id'] = sensor_id
+                            # historic_item_list[key]['channel_name'] = channel_name
+                            historic_item_list[key]['datetime'] = self.get_date(historic['datetime'])
+                            historic_item_list[key]['prefix'] = outgoing_name_list[0]
+                            historic_item_list[key]['outgoing'] = outgoing
+                            historic_item_list[key]['raw_outgoing'] = outgoing
+                if idx+1 == len(historic):
+                    for historic_item in historic_item_list:
                         cidr_regex = r'^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$'
-                        if re.match(cidr_regex, str(historic_item[key]['prefix'])):
-                            # print(historic_item)
-                            # print("------------------------------")
-                            yield historic_item[key]
+                        if re.match(cidr_regex, str(historic_item_list[historic_item]['prefix'])):
+                            print(historic_item_list[historic_item])
+                            print("------------------------------")
+                            yield historic_item
+
+                    print(historic_item_list)
+                    print("------------------------------")
 
             num += 1
 
