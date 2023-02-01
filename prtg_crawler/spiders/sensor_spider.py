@@ -8,7 +8,7 @@ from scrapy.utils.project import get_project_settings
 
 class SensorSpider(scrapy.Spider):
     settings = get_project_settings()
-    
+
     name = "sensor"
     start_urls = ['http://172.31.251.9:8080/api/table.xml?content=sensortree&passhash=' + settings.get('PRTG_PASSHASH') + '&username=' + settings.get('PRTG_USERNAME') +
                   '&columns=sensor']
