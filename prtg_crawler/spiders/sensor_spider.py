@@ -47,18 +47,19 @@ class SensorSpider(scrapy.Spider):
             sensor_id = str(item['sensor_id']).replace("['", "").replace("']", "")
             name = channel['name']
             del channel['name']
-            channel_item = {
-                "sensor_id": sensor_id,
-                "name": name,
-                "lastvalue": json.dumps(channel)
-            }
-            # print(channel_item)
-            # print("----------------")
-            historic_url = 'http://172.31.251.9:8080/api/historicdata.json?id=' + sensor_id + '&avg=0&sdate=2023-01-15-00-00-00&edate' \
-                                                                                              '=2023-01-15-23-59-00&usecaption=1&username=' + self.settings.get('PRTG_USERNAME') + '&passhash=' + self.settings.get('PRTG_PASSHASH')
 
-            yield scrapy.Request(historic_url, meta={'item': item}, callback=self.historic_parse)
-            yield channel_item
+            cidr_regex = re.compile(r'^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))')
+            if cidr_regex.search(name):
+                channel_item = {
+                    "sensor_id": sensor_id,
+                    "name": name,
+                    "lastvalue": json.dumps(channel)
+                }
+                historic_url = 'http://172.31.251.9:8080/api/historicdata.json?id=' + sensor_id + '&avg=0&sdate=2023-01-15-00-00-00&edate' \
+                                                                                                 '=2023-01-15-23-59-00&usecaption=1&username=' + self.settings.get('PRTG_USERNAME') + '&passhash=' + self.settings.get('PRTG_PASSHASH')
+
+                yield scrapy.Request(historic_url, meta={'item': item}, callback=self.historic_parse)
+                yield channel_item
 
     def historic_parse(self, response):
         item = response.meta['item']
