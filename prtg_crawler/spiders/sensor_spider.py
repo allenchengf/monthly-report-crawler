@@ -57,7 +57,7 @@ class SensorSpider(scrapy.Spider):
             historic_url = 'http://172.31.251.9:8080/api/historicdata.json?id=' + sensor_id + '&avg=0&sdate=2023-01-15-00-00-00&edate' \
                                                                                               '=2023-01-15-23-59-00&usecaption=1&username=' + self.settings.get('PRTG_USERNAME') + '&passhash=' + self.settings.get('PRTG_PASSHASH')
 
-            yield scrapy.Request(historic_url, meta={'item': item, 'channel_item': channel_item}, callback=self.historic_parse)
+            yield scrapy.Request(historic_url, meta={'item': item}, callback=self.historic_parse)
             yield channel_item
 
     def historic_parse(self, response):
@@ -81,18 +81,14 @@ class SensorSpider(scrapy.Spider):
                             incoming = int(float(historic[name])) * 8 if int(float(historic[name])) > 0 & int(float(
                                 historic[name])) != '' else int(float(historic[name]))
                         incoming_name_list = name.split('_')
-                        # channel_name_temp = name.split(' ')
-                        # channel_name = str(channel_name_temp[0])
                         key = str(num) + '_' + str(incoming_name_list[0].replace(' ', '-')) + '_' + str(sensor_id)
 
                         if key in historic_item_list:
                             historic_item_list[key]['incoming'] = incoming
                             historic_item_list[key]['raw_incoming'] = incoming
                         else:
-                            # historic_item_list = {key: {}}
                             historic_item_list[key] = {}
                             historic_item_list[key]['sensor_id'] = sensor_id
-                            # historic_item_list[key]['channel_name'] = channel_name
                             historic_item_list[key]['datetime'] = self.get_date(historic['datetime'])
                             historic_item_list[key]['prefix'] = incoming_name_list[0]
                             historic_item_list[key]['incoming'] = incoming
@@ -106,8 +102,6 @@ class SensorSpider(scrapy.Spider):
                             outgoing = int(float(historic[name])) * 8 if int(float(historic[name])) > 0 & int(float(
                                 historic[name])) != '' else int(float(historic[name]))
                         outgoing_name_list = name.split('_')
-                        # channel_name_temp = name.split(' ')
-                        # channel_name = str(channel_name_temp[0])
                         key = str(num) + '_' + str(outgoing_name_list[0].replace(' ', '-')) + '_' + str(sensor_id)
 
                         if key in historic_item_list:
@@ -118,10 +112,8 @@ class SensorSpider(scrapy.Spider):
                             print('key:'+key)
                             print('name:' + name)
                             print('historic_item:', historic_item_list.keys())
-                            # historic_item_list = {key: {}}
                             historic_item_list[key] = {}
                             historic_item_list[key]['sensor_id'] = sensor_id
-                            # historic_item_list[key]['channel_name'] = channel_name
                             historic_item_list[key]['datetime'] = self.get_date(historic['datetime'])
                             historic_item_list[key]['prefix'] = outgoing_name_list[0]
                             historic_item_list[key]['outgoing'] = outgoing
