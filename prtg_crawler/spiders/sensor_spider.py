@@ -4,11 +4,13 @@ import re
 import time
 import calendar
 import scrapy
-
+from scrapy.utils.project import get_project_settings
 
 class SensorSpider(scrapy.Spider):
+    settings = get_project_settings()
+    
     name = "sensor"
-    start_urls = ['http://172.31.251.9:8080/api/table.xml?content=sensortree&passhash=3168990700&username=ict.monitor'
+    start_urls = ['http://172.31.251.9:8080/api/table.xml?content=sensortree&passhash=' + settings.get('PRTG_PASSHASH') + '&username=' + settings.get('PRTG_USERNAME') +
                   '&columns=sensor']
     iterator = 'iternodes'  # This is actually unnecessary, since it's the default value
     itertag = 'sensortree'
@@ -32,7 +34,7 @@ class SensorSpider(scrapy.Spider):
                 }
                 Sensor_item['channel_url'] = 'http://172.31.251.9:8080/api/table.json?content=channels&output=json&columns=name,' \
                                       'lastvalue_&id=' + str(Sensor_item["sensor_id"]).replace("['", "").replace("']",
-                                                                                                   "") + '&username=ict.monitor&passhash=3168990700'
+                                                                                                   "") + '&username='+ self.settings.get('PRTG_USERNAME') + '&passhash=' + self.settings.get('PRTG_PASSHASH')
 
                 # print(Sensor_item)
                 yield scrapy.Request(Sensor_item['channel_url'], meta={'item': Sensor_item}, callback=self.channel_parse)
@@ -53,7 +55,7 @@ class SensorSpider(scrapy.Spider):
             # print(channel_item)
             # print("----------------")
             historic_url = 'http://172.31.251.9:8080/api/historicdata.json?id=' + sensor_id + '&avg=0&sdate=2023-01-15-00-00-00&edate' \
-                                                                                              '=2023-01-15-23-59-00&usecaption=1&username=ict.monitor&passhash=3168990700'
+                                                                                              '=2023-01-15-23-59-00&usecaption=1&username=' + self.settings.get('PRTG_USERNAME') + '&passhash=' + self.settings.get('PRTG_PASSHASH')
 
             yield scrapy.Request(historic_url, meta={'item': item, 'channel_item': channel_item}, callback=self.historic_parse)
             yield channel_item

@@ -110,3 +110,7 @@ MYSQL_PWD = 'root'
 MYSQL_DB = 'monthly_report'
 MYSQL_PORT = 3306
 MYSQL_CHARSET = 'utf8mb4'
+
+# PRTG CONFIG
+PRTG_USERNAME = 'ict.monitor'
+PRTG_PASSHASH = '3168990700'
