@@ -4,6 +4,7 @@ from twisted.enterprise import adbapi
 import pymysql
 from prtg_crawler.items import SensorItem
 
+
 class PrtgCrawlerPipeline(object):
     def __init__(self, dbpool):
         self.dbpool = dbpool

@@ -68,6 +68,7 @@ COOKIES_ENABLED = False
 ITEM_PIPELINES = {
    'prtg_crawler.pipelines.PrtgCrawlerPipeline': 300,
    'prtg_crawler.channel_pipelines.ChannelCrawlerPipeline': 301,
+   'prtg_crawler.menu_pipelines.MenuPipeline': 303,
    'prtg_crawler.historic_pipelines.HistoricCrawlerPipeline': 302
 }
 
@@ -118,5 +119,5 @@ PRTG_PASSHASH = '3168990700'
 # REDIS SETTING
 REDIS_HOST ='localhost'
 REDIS_PORT =6379
-REDIS_DB_INDEX = 0
+REDIS_DB_INDEX = 2
 REDIS_PASSWORD = ''
