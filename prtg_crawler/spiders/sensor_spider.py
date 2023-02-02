@@ -79,8 +79,7 @@ class SensorSpider(scrapy.Spider):
                         if isinstance(historic[name], str):
                             incoming = historic[name]
                         else:
-                            incoming = int(float(historic[name])) * 8 if int(float(historic[name])) > 0 & int(float(
-                                historic[name])) != '' else int(float(historic[name]))
+                            incoming = self.traffic_format(historic[name])
                         incoming_name_list = name.split('_')
                         key = str(num) + '_' + str(incoming_name_list[0].replace(' ', '-')) + '_' + str(sensor_id)
 
@@ -94,14 +93,15 @@ class SensorSpider(scrapy.Spider):
                             historic_item_list[key]['prefix'] = incoming_name_list[0]
                             historic_item_list[key]['incoming'] = incoming
                             historic_item_list[key]['raw_incoming'] = incoming
+                            historic_item_list[key]['outgoing'] = None
+                            historic_item_list[key]['raw_outgoing'] = None
 
 
                     if name.find(outgoingRefer) != -1:
                         if isinstance(historic[name], str):
                             outgoing = historic[name]
                         else:
-                            outgoing = int(float(historic[name])) * 8 if int(float(historic[name])) > 0 & int(float(
-                                historic[name])) != '' else int(float(historic[name]))
+                            outgoing = self.traffic_format(historic[name])
                         outgoing_name_list = name.split('_')
                         key = str(num) + '_' + str(outgoing_name_list[0].replace(' ', '-')) + '_' + str(sensor_id)
 
@@ -117,8 +117,11 @@ class SensorSpider(scrapy.Spider):
                             historic_item_list[key]['sensor_id'] = sensor_id
                             historic_item_list[key]['datetime'] = self.get_date(historic['datetime'])
                             historic_item_list[key]['prefix'] = outgoing_name_list[0]
+                            historic_item_list[key]['incoming'] = None
+                            historic_item_list[key]['raw_incoming'] = None
                             historic_item_list[key]['outgoing'] = outgoing
                             historic_item_list[key]['raw_outgoing'] = outgoing
+
                 if idx+1 == len(historic):
                     for historic_item in historic_item_list:
                         cidr_regex = r'^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$'
@@ -145,3 +148,6 @@ class SensorSpider(scrapy.Spider):
         datetime_str = str(datetime_str_temp[0]) + ' ' + str(hours_mapping_dict[str(datetime_str[0])]) + ':' + str(datetime_str[1]) + ':' + str(datetime_str[2])
         datetime_str = datetime_str.replace('/', '-')
         return datetime_str
+
+    def traffic_format(self, data):
+        return float(data) * 8 if float(data) > 0 and float(data) != '' else float(data)
