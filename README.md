@@ -149,7 +149,7 @@ apt install python3-apt
 ### Step 5 – Install pip & distutils
 
 ```shell
-apt install python3.10-distutils
+apt install python3.9-distutils
 ```
 <br>
 install pip by running
