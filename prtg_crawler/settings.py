@@ -84,7 +84,7 @@ AUTOTHROTTLE_ENABLED = True
 #AUTOTHROTTLE_TARGET_CONCURRENCY = 1.0
 AUTOTHROTTLE_TARGET_CONCURRENCY = 100
 # Enable showing throttling stats for every response received:
-AUTOTHROTTLE_DEBUG = False
+AUTOTHROTTLE_DEBUG = True
 
 # Enable and configure HTTP caching (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html#httpcache-middleware-settings
@@ -98,8 +98,8 @@ HTTPCACHE_ENABLED = True
 REQUEST_FINGERPRINTER_IMPLEMENTATION = '2.7'
 TWISTED_REACTOR = 'twisted.internet.asyncioreactor.AsyncioSelectorReactor'
 
-LOG_FILE = "sensor.log"
-LOG_LEVEL = "ERROR"
+# LOG_FILE = "sensor.log"
+# LOG_LEVEL = "ERROR"
 
 # Download timeout setting
 DOWNLOAD_TIMEOUT = 30
