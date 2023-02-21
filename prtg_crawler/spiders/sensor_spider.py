@@ -26,8 +26,6 @@ class SensorSpider(scrapy.Spider):
             db=settings.get('REDIS_DB_INDEX'),
         )
 
-        # time_range = self.set_time_range()
-        # print('start_time', time_range['start_time'])
 
     def parse(self, response):
         sensors = response.xpath("//sensortree/nodes/group//sensor").getall()
@@ -170,7 +168,7 @@ class SensorSpider(scrapy.Spider):
     def set_time_range(self):
         time_range = {}
         current_time = datetime.today()
-        time_range['start_time'] = (current_time + timedelta(minutes=-15)).strftime("%Y-%m-%d-%H-%M-00")
-        time_range['end_time'] = current_time.strftime("%Y-%m-%d-%H-%M-00")
+        time_range['start_time'] = (current_time + timedelta(days=-1)).strftime("%Y-%m-%d-00-00-00")
+        time_range['end_time'] = (current_time + timedelta(days=-1)).strftime("%Y-%m-%d-23-59-00")
 
         return time_range
