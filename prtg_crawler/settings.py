@@ -66,10 +66,10 @@ COOKIES_ENABLED = False
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
-   'prtg_crawler.pipelines.PrtgCrawlerPipeline': 300,
-   'prtg_crawler.channel_pipelines.ChannelCrawlerPipeline': 301,
-   'prtg_crawler.menu_pipelines.MenuPipeline': 303,
-   'prtg_crawler.historic_pipelines.HistoricCrawlerPipeline': 302
+   # 'prtg_crawler.pipelines.PrtgCrawlerPipeline': 300,
+   # 'prtg_crawler.channel_pipelines.ChannelCrawlerPipeline': 301,
+   # 'prtg_crawler.menu_pipelines.MenuPipeline': 303,
+   # 'prtg_crawler.historic_pipelines.HistoricCrawlerPipeline': 302
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)
@@ -84,7 +84,7 @@ AUTOTHROTTLE_ENABLED = True
 #AUTOTHROTTLE_TARGET_CONCURRENCY = 1.0
 AUTOTHROTTLE_TARGET_CONCURRENCY = 100
 # Enable showing throttling stats for every response received:
-#AUTOTHROTTLE_DEBUG = False
+AUTOTHROTTLE_DEBUG = False
 
 # Enable and configure HTTP caching (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html#httpcache-middleware-settings

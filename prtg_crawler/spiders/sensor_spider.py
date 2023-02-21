@@ -1,10 +1,12 @@
-from datetime import datetime
 import json
 import re
 import time
 import calendar
 import scrapy
 from scrapy.utils.project import get_project_settings
+import redis
+from datetime import datetime, timedelta
+
 
 class SensorSpider(scrapy.Spider):
     settings = get_project_settings()
@@ -14,6 +16,18 @@ class SensorSpider(scrapy.Spider):
                   '&columns=sensor']
     iterator = 'iternodes'  # This is actually unnecessary, since it's the default value
     itertag = 'sensortree'
+
+    def __init__(self):
+        settings = get_project_settings()
+        self.redis = redis.StrictRedis(
+            host=settings.get('REDIS_HOST'),
+            password=settings.get('REDIS_PASSWORD'),
+            port=settings.get('REDIS_PORT'),
+            db=settings.get('REDIS_DB_INDEX'),
+        )
+
+        # time_range = self.set_time_range()
+        # print('start_time', time_range['start_time'])
 
     def parse(self, response):
         sensors = response.xpath("//sensortree/nodes/group//sensor").getall()
@@ -41,6 +55,7 @@ class SensorSpider(scrapy.Spider):
                 yield Sensor_item
 
     def channel_parse(self, response):
+        time_range = self.set_time_range()
         item = response.meta['item']
         channels = json.loads(response.text)
         for channel in channels['channels']:
@@ -55,8 +70,8 @@ class SensorSpider(scrapy.Spider):
                     "name": name,
                     "lastvalue": json.dumps(channel)
                 }
-                historic_url = 'http://172.31.251.9:8080/api/historicdata.json?id=' + sensor_id + '&avg=0&sdate=2023-01-15-00-00-00&edate' \
-                                                                                                 '=2023-01-15-23-59-00&usecaption=1&username=' + self.settings.get('PRTG_USERNAME') + '&passhash=' + self.settings.get('PRTG_PASSHASH')
+                historic_url = 'http://172.31.251.9:8080/api/historicdata.json?id=' + sensor_id + '&avg=0&sdate=' + time_range['start_time'] + '&edate' \
+                                                                                                 '=' + time_range['end_time'] + '&usecaption=1&username=' + self.settings.get('PRTG_USERNAME') + '&passhash=' + self.settings.get('PRTG_PASSHASH')
 
                 yield scrapy.Request(historic_url, meta={'item': item}, callback=self.historic_parse)
                 yield channel_item
@@ -141,7 +156,7 @@ class SensorSpider(scrapy.Spider):
 
         hours_mapping_dict = {
             '下午01': '13', '下午02': '14', '下午03': '15', '下午04': '16', '下午05': '17', '下午06': '18', '下午07': '19', '下午08': '20',
-            '下午09': '21', '下午10': '22', '下午11': '23', '下午12': '24', '上午01': '01', '上午02': '02', '上午03': '03', '上午04': '04',
+            '下午09': '21', '下午10': '22', '下午11': '23', '下午12': '12', '上午01': '01', '上午02': '02', '上午03': '03', '上午04': '04',
             '上午05': '05', '上午06': '06', '上午07': '07', '上午08': '08', '上午09': '09', '上午10': '10', '上午11': '11', '上午12': '00'
         }
 
@@ -151,3 +166,11 @@ class SensorSpider(scrapy.Spider):
 
     def traffic_format(self, data):
         return float(data) * 8 if float(data) > 0 and float(data) != '' else float(data)
+
+    def set_time_range(self):
+        time_range = {}
+        current_time = datetime.today()
+        time_range['start_time'] = (current_time + timedelta(minutes=-15)).strftime("%Y-%m-%d-%H-%M-00")
+        time_range['end_time'] = current_time.strftime("%Y-%m-%d-%H-%M-00")
+
+        return time_range
