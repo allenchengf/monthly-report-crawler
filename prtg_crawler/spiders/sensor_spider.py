@@ -31,9 +31,10 @@ class SensorSpider(scrapy.Spider):
         sensors = response.xpath("//sensortree/nodes/group//sensor").getall()
         sflow_sensortype_refor = "<sensortype>sFlow (Custom)</sensortype>"
         ipfix_sensortype_refor = "<sensortype>IPFIX (Custom)</sensortype>"
-        sensor_factory_sensortype_refor = "<sensortype>Sensor Factory</sensortype>"
+        # sensor_factory_sensortype_refor = "<sensortype>Sensor Factory</sensortype>"
         for ids, sensor in enumerate(sensors):
-            if sflow_sensortype_refor in sensor or ipfix_sensortype_refor in sensor or sensor_factory_sensortype_refor in sensor:
+            # if sflow_sensortype_refor in sensor or ipfix_sensortype_refor in sensor or sensor_factory_sensortype_refor in sensor:
+            if sflow_sensortype_refor in sensor or ipfix_sensortype_refor in sensor:
                 # print(sensor)
                 Sensor_item = {
                     'ids': ids,
