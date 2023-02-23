@@ -1,88 +1,52 @@
 import json
 import re
-import time
-import calendar
 import scrapy
 from scrapy.utils.project import get_project_settings
 import redis
 from datetime import datetime, timedelta
+from urllib.parse import urlparse
+from urllib.parse import parse_qs
 
 
 class SensorSpider(scrapy.Spider):
-    settings = get_project_settings()
-
     name = "sensor"
-    start_urls = ['http://172.31.251.9:8080/api/table.xml?content=sensortree&passhash=' + settings.get('PRTG_PASSHASH') + '&username=' + settings.get('PRTG_USERNAME') +
-                  '&columns=sensor']
     iterator = 'iternodes'  # This is actually unnecessary, since it's the default value
     itertag = 'sensortree'
+    start_urls = []
 
-    def __init__(self):
-        settings = get_project_settings()
-        self.redis = redis.StrictRedis(
-            host=settings.get('REDIS_HOST'),
-            password=settings.get('REDIS_PASSWORD'),
-            port=settings.get('REDIS_PORT'),
-            db=settings.get('REDIS_DB_INDEX'),
-        )
+    settings = get_project_settings()
+
+    redis = redis.StrictRedis(
+        host=settings.get('REDIS_HOST'),
+        password=settings.get('REDIS_PASSWORD'),
+        port=settings.get('REDIS_PORT'),
+        db=settings.get('REDIS_DB_INDEX'),
+    )
+    time_range = {}
+    current_time = datetime.today()
+    start_time = (current_time + timedelta(days=-1)).strftime("%Y-%m-%d-00-00-00")
+    end_time = (current_time + timedelta(days=-1)).strftime("%Y-%m-%d-23-59-00")
+
+    sensors_menu = redis.get('sensors_menu')
+    redis.set('sensors_menu_copy', sensors_menu)
+    rows = json.loads(redis.get('sensors_menu_copy'))
+
+    for row in rows:
+        URL = 'http://172.31.251.9:8080/api/historicdata.json?id=' + str(row['sensor_id']) + '&avg=0&sdate=' + start_time + '&edate' \
+                                                                                                 '=' + end_time + '&usecaption=1&username=' + settings.get('PRTG_USERNAME') + '&passhash=' + settings.get('PRTG_PASSHASH')
+        start_urls.append(URL)
+
 
 
     def parse(self, response):
-        sensors = response.xpath("//sensortree/nodes/group//sensor").getall()
-        sflow_sensortype_refor = "<sensortype>sFlow (Custom)</sensortype>"
-        ipfix_sensortype_refor = "<sensortype>IPFIX (Custom)</sensortype>"
-        # sensor_factory_sensortype_refor = "<sensortype>Sensor Factory</sensortype>"
-        for ids, sensor in enumerate(sensors):
-            # if sflow_sensortype_refor in sensor or ipfix_sensortype_refor in sensor or sensor_factory_sensortype_refor in sensor:
-            if sflow_sensortype_refor in sensor or ipfix_sensortype_refor in sensor:
-                # print(sensor)
-                Sensor_item = {
-                    'ids': ids,
-                    'name': re.findall("(?:<name.*?>)(.*?)(?:<\\/name>)", sensor),
-                    "sensor_id": re.findall("(?:<id.*?>)(.*?)(?:<\\/id>)", sensor),
-                    "url": re.findall("(?:<url.*?>)(.*?)(?:<\\/url>)", sensor),
-                    "tags": re.findall("(?:<tags.*?>)(.*?)(?:<\\/tags>)", sensor),
-                    "status": re.findall("(?:<status.*?>)(.*?)(?:<\\/status>)", sensor),
-                    "active": re.findall("(?:<active.*?>)(.*?)(?:<\\/active>)", sensor),
-                }
-                Sensor_item['channel_url'] = 'http://172.31.251.9:8080/api/table.json?content=channels&output=json&columns=name,' \
-                                      'lastvalue_&id=' + str(Sensor_item["sensor_id"]).replace("['", "").replace("']",
-                                                                                                   "") + '&username='+ self.settings.get('PRTG_USERNAME') + '&passhash=' + self.settings.get('PRTG_PASSHASH')
-
-                # print(Sensor_item)
-                yield scrapy.Request(Sensor_item['channel_url'], meta={'item': Sensor_item}, callback=self.channel_parse)
-                yield Sensor_item
-
-    def channel_parse(self, response):
-        time_range = self.set_time_range()
-        item = response.meta['item']
-        channels = json.loads(response.text)
-        for channel in channels['channels']:
-            sensor_id = str(item['sensor_id']).replace("['", "").replace("']", "")
-            name = channel['name']
-            del channel['name']
-
-            cidr_regex = re.compile(r'^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))')
-            if cidr_regex.search(name):
-                channel_item = {
-                    "sensor_id": sensor_id,
-                    "name": name,
-                    "lastvalue": json.dumps(channel)
-                }
-                historic_url = 'http://172.31.251.9:8080/api/historicdata.json?id=' + sensor_id + '&avg=0&sdate=' + time_range['start_time'] + '&edate' \
-                                                                                                 '=' + time_range['end_time'] + '&usecaption=1&username=' + self.settings.get('PRTG_USERNAME') + '&passhash=' + self.settings.get('PRTG_PASSHASH')
-
-                yield scrapy.Request(historic_url, meta={'item': item}, callback=self.historic_parse)
-                yield channel_item
-
-    def historic_parse(self, response):
-        item = response.meta['item']
         historics = json.loads(response.text)
+        url = response.request.url
+        parsed_url = urlparse(url)
+        sensor_id = parse_qs(parsed_url.query)['id'][0]
 
         num = 0
         for historic in historics['histdata']:
             print('Count:', len(historic))
-            sensor_id = str(item['sensor_id']).replace("['", "").replace("']", "")
             incomingRefer = 'Incoming_Traffic (speed)'
             outgoingRefer = 'Outgoing_Traffic (speed)'
             historic_item_list = {}
