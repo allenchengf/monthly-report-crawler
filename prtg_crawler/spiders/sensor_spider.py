@@ -6,6 +6,7 @@ import redis
 from datetime import datetime, timedelta
 from urllib.parse import urlparse
 from urllib.parse import parse_qs
+import pymysql
 
 
 class SensorSpider(scrapy.Spider):
@@ -22,6 +23,29 @@ class SensorSpider(scrapy.Spider):
         port=settings.get('REDIS_PORT'),
         db=settings.get('REDIS_DB_INDEX'),
     )
+
+    # setting MySQL connect
+    connect = pymysql.connect(
+        host=settings.get('MYSQL_HOST'),
+        db=settings.get('MYSQL_DB'),
+        user=settings.get('MYSQL_USER'),
+        passwd=settings.get('MYSQL_PWD'),
+        charset='utf8mb4'
+    )
+
+    # 若為當月1號，將上個月的資料複製一份，並新開db
+    month_start_day = (datetime.today() - timedelta(days=datetime.now().day - 1))
+    last_month = (month_start_day - timedelta(days=1))
+    month_start_day = month_start_day.strftime("%Y-%m-%d")
+    last_month = last_month.strftime("_%Y_%m")
+
+    today_date = datetime.today().strftime("%Y-%m-%d")
+    if month_start_day == today_date:
+        cursor = connect.cursor()
+        cursor.execute("create table historic" + last_month + " select * from historic")
+        cursor.execute("Show tables")
+        query = cursor.fetchall()
+
     time_range = {}
     current_time = datetime.today()
     start_time = (current_time + timedelta(days=-1)).strftime("%Y-%m-%d-00-00-00")
@@ -129,11 +153,3 @@ class SensorSpider(scrapy.Spider):
 
     def traffic_format(self, data):
         return float(data) * 8 if float(data) > 0 and float(data) != '' else float(data)
-
-    def set_time_range(self):
-        time_range = {}
-        current_time = datetime.today()
-        time_range['start_time'] = (current_time + timedelta(days=-1)).strftime("%Y-%m-%d-00-00-00")
-        time_range['end_time'] = (current_time + timedelta(days=-1)).strftime("%Y-%m-%d-23-59-00")
-
-        return time_range
