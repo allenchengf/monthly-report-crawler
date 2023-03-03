@@ -66,7 +66,8 @@ COOKIES_ENABLED = False
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
-   'prtg_crawler.historic_pipelines.HistoricCrawlerPipeline': 300
+   'prtg_crawler.historic_pipelines.HistoricCrawlerPipeline': 300,
+   'prtg_crawler.menu_pipelines.MenuPipeline': 301
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)

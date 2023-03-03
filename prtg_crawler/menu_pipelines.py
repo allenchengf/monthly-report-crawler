@@ -32,46 +32,24 @@ class MenuPipeline(object):
         pass
 
     def close_spider(self, spider):
-        print('start generate menu')
-        time.sleep(10)
-        self.generate_sensors_menu()
-        self.generate_channels_menu()
+        print('start generate prefixes menu')
+        time.sleep(30)
+        self.generate_prefixes_menu()
         self.cursor.close()
         self.connect.close()
 
-    def generate_sensors_menu(self):
-        print('start generate sensors menu')
+    def generate_prefixes_menu(self):
+        print('start generate prefixes menu')
         try:
-            self.cursor.execute("select id, name, sensor_id from sensors")
-            rows = self.cursor.fetchall()
-            sensors_menu = []
-            for row in rows:
-                menu_item = {}
-                for index in range(len(self.cursor.description)):
-                    key = self.cursor.description[index][0]
-                    menu_item[key] = row[index]
-                print(menu_item)
-                sensors_menu.append(menu_item)
-            sensors_menu_json_str = json.dumps(sensors_menu)
-            print(sensors_menu_json_str)
-            self.redis.set('sensors_menu', sensors_menu_json_str)
-        except Exception as err:
-            print('fail', err)
-        finally:
-            print('close generate sensors menu')
-
-    def generate_channels_menu(self):
-        print('start generate channels menu')
-        try:
-            self.cursor.execute("select sensor_id, name from channels")
+            self.cursor.execute("select distinct sensor_id,prefix from historic order by sensor_id asc")
             rows = self.cursor.fetchall()
             multi_dict = defaultdict(list)
             for k, v in rows:
                 multi_dict[k].append(v)
-            channels_menu_json_str = json.dumps(multi_dict)
-            print(channels_menu_json_str)
-            self.redis.set('channels_menu', channels_menu_json_str)
+            prefixes_menu_json_str = json.dumps(multi_dict)
+            print(prefixes_menu_json_str)
+            self.redis.set('prefixes_menu', prefixes_menu_json_str)
         except Exception as err:
             print('fail', err)
         finally:
-            print('close generate channels menu')
+            print('close generate prefixes menu')
