@@ -33,18 +33,18 @@ class SensorSpider(scrapy.Spider):
         charset='utf8mb4'
     )
 
-    # 若為當月1號，將上個月的資料複製一份，並新開db
-    month_start_day = (datetime.today() - timedelta(days=datetime.now().day - 1))
-    last_month = (month_start_day - timedelta(days=1))
-    month_start_day = month_start_day.strftime("%Y-%m-%d")
-    last_month = last_month.strftime("_%Y_%m")
-
-    today_date = datetime.today().strftime("%Y-%m-%d")
-    if month_start_day == today_date:
-        cursor = connect.cursor()
-        cursor.execute("create table historic" + last_month + " select * from historic")
-        cursor.execute("Show tables")
-        query = cursor.fetchall()
+    # # 若為當月1號，將上個月的資料複製一份，並新開db
+    # month_start_day = (datetime.today() - timedelta(days=datetime.now().day - 1))
+    # last_month = (month_start_day - timedelta(days=1))
+    # month_start_day = month_start_day.strftime("%Y-%m-%d")
+    # last_month = last_month.strftime("_%Y_%m")
+    #
+    # today_date = datetime.today().strftime("%Y-%m-%d")
+    # if month_start_day == today_date:
+    #     cursor = connect.cursor()
+    #     cursor.execute("create table historic" + last_month + " select * from historic")
+    #     cursor.execute("Show tables")
+    #     query = cursor.fetchall()
 
     time_range = {}
     current_time = datetime.today()
